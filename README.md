@@ -1,2 +1,2 @@
-# MultithreadingProject
+# MultiThreadingProject
 Otus homework
