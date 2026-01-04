@@ -12,6 +12,9 @@ public class ArraySumTest
 {
     private int[] sourceArray;
 
+
+    #region SetupParameters
+
     [Params(0)]
     public int Min { get; set; }
 
@@ -28,6 +31,9 @@ public class ArraySumTest
         sourceArray = GenerateArrayOfInts(Min, Max, Size);
     }
 
+    #endregion SetupParameters
+
+
     [Benchmark]
     public void StandardSum()
     {
@@ -37,7 +43,7 @@ public class ArraySumTest
             sum += item;
         }
 
-        Console.WriteLine("Sum of sequential process: {0}", sum);
+        //Console.WriteLine("Sum of sequential process: {0}", sum);
     }
 
     [Benchmark]
@@ -73,7 +79,7 @@ public class ArraySumTest
             thread.Join();
         }
 
-        Console.WriteLine("Sum of thread process: {0}", sum);
+        //Console.WriteLine("Sum of thread process: {0}", sum);
     }
 
     [Benchmark]
@@ -83,7 +89,7 @@ public class ArraySumTest
                              .AsOrdered()
                              .Sum();
 
-        Console.WriteLine("Sum of plink process: {0}", sum);
+        //Console.WriteLine("Sum of plink process: {0}", sum);
     }
 
 
