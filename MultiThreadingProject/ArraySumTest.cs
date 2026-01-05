@@ -1,6 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
-using System.Collections.Concurrent;
 
 namespace MultiThreadingProject;
 
@@ -22,6 +21,7 @@ public class ArraySumTest
     [Params(100)]
     public int Max { get; set; }
 
+    // Будет замер для трёх размеров массива
     [Params(100000, 1000000, 10000000)]
     public int Size { get; set; }
 
@@ -36,19 +36,21 @@ public class ArraySumTest
 
 
     [Benchmark]
-    public void StandardSum()
+    public long StandardSum()
     {
-        var sum = 0;
+        var sum = 0L;
         foreach (var item in sourceArray)
         {
             sum += item;
         }
 
         //Console.WriteLine("Sum of sequential process: {0}", sum);
+
+        return sum;
     }
 
     [Benchmark]
-    public void ThreadSum()
+    public long ThreadSum()
     {
         //Разбиваем массив на куски.
         //Возьмём кол-во кусков = кол-ву ядер процессора.
@@ -62,7 +64,7 @@ public class ArraySumTest
                                 .ToArray();
 
         var threads = new List<Thread>(chunks.Length);
-        var sum = 0;
+        var sum = 0L;
 
         //Каждый кусок обрабатываем в отдельном потоке.
         foreach (var chunk in chunks)
@@ -84,10 +86,12 @@ public class ArraySumTest
         }
 
         //Console.WriteLine("Sum of thread process: {0}", sum);
+
+        return sum;
     }
 
     [Benchmark]
-    public void ThreadPSum()
+    public long TplSum()
     {
         //Разбиваем массив на куски.
         //Возьмём кол-во кусков = кол-ву ядер процессора.
@@ -100,40 +104,28 @@ public class ArraySumTest
         var chunks = sourceArray.Chunk(chunkSize)
                                 .ToArray();
 
-        var threads = new ConcurrentBag<Thread>();
-        var sum = 0;
+        var sum = 0L;
 
         Parallel.ForEach(chunks, chunk =>
         {
-            var chunkThread = new Thread(() =>
-            {
-                var partSum = chunk.Sum();
-                Interlocked.Add(ref sum, partSum);
-            });
-
-            threads.Add(chunkThread);
-            chunkThread.Start();
+            var partSum = chunk.Sum();
+            Interlocked.Add(ref sum, partSum);
         });
 
+        //Console.WriteLine("Sum of TPL process: {0}", sum);
 
-
-        // Потоки нужно синхронизировать и получить общий результат
-        foreach (var thread in threads)
-        {
-            thread.Join();
-        }
-
-        //Console.WriteLine("Sum of parallel thread process: {0}", sum);
+        return sum;
     }
 
     [Benchmark]
-    public void PlinkSum()
+    public long PlinkSum()
     {
         var sum = sourceArray.AsParallel()
-                             .AsOrdered()
                              .Sum();
 
         //Console.WriteLine("Sum of plink process: {0}", sum);
+
+        return sum;
     }
 
 

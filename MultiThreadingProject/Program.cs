@@ -12,7 +12,8 @@ internal class Program
         Console.WriteLine($"OS Architecture: {RuntimeInformation.OSArchitecture}");
         Console.WriteLine($"FrameworkDescription: {RuntimeInformation.FrameworkDescription}");
 
-
+        // Начал сам собирать инфу об окружении, но бенчмарк это делает уже хорошо для разных платформ.
+        // Да и результаты в табличке показывет, поэтому собственно его решил выбрать.
         BenchmarkRunner.Run<ArraySumTest>();
     }
 }
