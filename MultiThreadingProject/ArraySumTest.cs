@@ -1,5 +1,6 @@
 ﻿using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Jobs;
+using System.Collections.Concurrent;
 
 namespace MultiThreadingProject;
 
@@ -52,15 +53,18 @@ public class ArraySumTest
         //Разбиваем массив на куски.
         //Возьмём кол-во кусков = кол-ву ядер процессора.
         var partsCount = Environment.ProcessorCount;
+
+        // Вычисляем размер куска
         var chunkSize = sourceArray.Length / partsCount + 1;
+
+        // Ну и бьём на куски
         var chunks = sourceArray.Chunk(chunkSize)
                                 .ToArray();
 
         var threads = new List<Thread>(chunks.Length);
-
         var sum = 0;
 
-        // Каждый кусок обрабатываем в отдельном потоке.
+        //Каждый кусок обрабатываем в отдельном потоке.
         foreach (var chunk in chunks)
         {
             var chunkThread = new Thread(() =>
@@ -80,6 +84,46 @@ public class ArraySumTest
         }
 
         //Console.WriteLine("Sum of thread process: {0}", sum);
+    }
+
+    [Benchmark]
+    public void ThreadPSum()
+    {
+        //Разбиваем массив на куски.
+        //Возьмём кол-во кусков = кол-ву ядер процессора.
+        var partsCount = Environment.ProcessorCount;
+
+        // Вычисляем размер куска
+        var chunkSize = sourceArray.Length / partsCount + 1;
+
+        // Ну и бьём на куски
+        var chunks = sourceArray.Chunk(chunkSize)
+                                .ToArray();
+
+        var threads = new ConcurrentBag<Thread>();
+        var sum = 0;
+
+        Parallel.ForEach(chunks, chunk =>
+        {
+            var chunkThread = new Thread(() =>
+            {
+                var partSum = chunk.Sum();
+                Interlocked.Add(ref sum, partSum);
+            });
+
+            threads.Add(chunkThread);
+            chunkThread.Start();
+        });
+
+
+
+        // Потоки нужно синхронизировать и получить общий результат
+        foreach (var thread in threads)
+        {
+            thread.Join();
+        }
+
+        //Console.WriteLine("Sum of parallel thread process: {0}", sum);
     }
 
     [Benchmark]
